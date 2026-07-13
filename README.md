@@ -4,26 +4,19 @@ Self-contained single-page trip planner (itinerary, packing list, reservations,
 document vault, emergency/health info). No backend — all saved data lives in
 each visitor's own browser (localStorage).
 
-## Deploy to GitLab Pages
+## Deploy to GitHub Pages
 
-1. Create a new project on gitlab.com (or your self-hosted instance).
-2. From this folder, run:
-   ```
-   git init
-   git add .
-   git commit -m "Trip planner site"
-   git branch -M main
-   git remote add origin git@gitlab.com:<your-username>/<your-project>.git
-   git push -u origin main
-   ```
-3. In your GitLab project: **CI/CD → Pipelines** — wait for it to go green
-   (should take well under a minute, there's no real build step).
+1. Push this repo to GitHub.
+2. In the repo: **Settings → Pages → Build and deployment → Source**, choose
+   **GitHub Actions**.
+3. The included `.github/workflows/pages.yml` workflow publishes the
+   `public/` folder automatically on every push to `main`.
 4. Your site is live at:
    ```
-   https://<your-username>.gitlab.io/<your-project>
+   https://<your-username>.github.io/<your-repo>
    ```
-   Check **Settings → Pages** in the project if you don't see the URL yet —
-   first deploys sometimes take a minute or two to appear there.
+   Check the **Actions** tab for the workflow run, and **Settings → Pages**
+   for the URL once it's deployed.
 
 ## Updating the site later
 
@@ -33,23 +26,30 @@ git add .
 git commit -m "Update trip planner"
 git push
 ```
-The pipeline redeploys automatically.
+The workflow redeploys automatically.
 
 ## Notes
 
 - Every visitor's checked-off packing items, reservation statuses, and vault
   entries are local to *their own* device/browser. Nothing syncs between
   people — this is a shared *view*, not a shared *database*.
-- The `.gitlab-ci.yml` here is intentionally minimal since there's nothing to
-  compile — it just tells GitLab Pages to publish the `public/` folder as-is.
+- GitHub Pages sites are publicly reachable regardless of repo visibility
+  (on free/personal plans there's no built-in auth wall) — the password
+  screen in `index.html` is what actually gates the content, not repo
+  privacy.
 
 ## Password protection
 
-The site is gated behind a password ("maya-eats-quesadilla") using client-side
-AES-256-GCM encryption (key derived via PBKDF2, 250,000 iterations). The actual
-trip content — flight/car confirmations, addresses, health info, everything —
-is stored in the page only as ciphertext. It's decrypted in-browser only after
-the correct password is entered, using the Web Crypto API.
+The site is gated behind a password using client-side AES-256-GCM encryption
+(key derived via PBKDF2, 250,000 iterations). The actual trip content —
+flight/car confirmations, addresses, health info, everything — is stored in
+the page only as ciphertext. It's decrypted in-browser only after the correct
+password is entered, using the Web Crypto API.
+
+The password itself is never stored anywhere in this repo (not in the HTML,
+not in the README) — only the salt, IV, and ciphertext are. Share the
+password with trip members out-of-band (text, in person, etc.), not via a
+commit or issue in this repo.
 
 **What this protects against:** someone stumbling on the link, a search engine
 indexing it, or a casual "view source" — none of them see anything but
