@@ -1,8 +1,24 @@
-# Forks → Seattle Trip Planner
+# Faroe Islands Trip
 
-Self-contained single-page trip planner (itinerary, packing list, reservations,
-document vault, emergency/health info). No backend — all saved data lives in
-each visitor's own browser (localStorage).
+Self-contained single-page trip guide for our Faroe Islands trip, Sep 6–11 2026
+(William, Victoria, Maya & Rhema). Itinerary, map, flight/car/house logistics,
+notes for travelling with the twins, and a practical Faroes primer.
+
+No backend. The packing checklist is saved in each visitor's own browser
+(localStorage) — nothing syncs between people or devices.
+
+## What's in it
+
+Six tabs:
+
+| Tab | Contents |
+| --- | --- |
+| **Now** | A live "what's happening" card driven by the device clock, three time-zone clocks (Baltimore / Reykjavík / Faroes), pre-departure checklist, and what's still unconfirmed |
+| **Days** | Day-by-day plan, Night 0 (the overnight flight) through Day 5 (departure), with flex notes and safety flags |
+| **Map** | Stylized map of Vágar / Streymoy / Eysturoy with tappable numbered stops, plus drive times from Vestmanna |
+| **Logistics** | Icelandair flights both ways, the Enterprise rental, and the Airbnb — address, lockbox, Wi-Fi, host directions, house manual |
+| **Twins** | Persistent packing checklist, plus sleep, food and outdoor-safety notes |
+| **Faroes** | Emergency numbers, driving and tunnel tolls, money, weather, and local practicalities |
 
 ## Deploy to GitHub Pages
 
@@ -18,25 +34,13 @@ each visitor's own browser (localStorage).
    Check the **Actions** tab for the workflow run, and **Settings → Pages**
    for the URL once it's deployed.
 
-## Updating the site later
-
-Edit `public/index.html`, then:
-```
-git add .
-git commit -m "Update trip planner"
-git push
-```
-The workflow redeploys automatically.
-
 ## Notes
 
-- Every visitor's checked-off packing items, reservation statuses, and vault
-  entries are local to *their own* device/browser. Nothing syncs between
-  people — this is a shared *view*, not a shared *database*.
 - GitHub Pages sites are publicly reachable regardless of repo visibility
   (on free/personal plans there's no built-in auth wall) — the sign-in
-  screen in `index.html` is what actually gates the content, not repo
+  screen in `public/index.html` is what actually gates the content, not repo
   privacy.
+- The page also sends `noindex, nofollow`, so search engines shouldn't list it.
 
 ## Sign-in: email allowlist + passcode
 
@@ -48,17 +52,18 @@ accounts):
    match, not an authentication factor — it doesn't verify the visitor
    actually owns that email address. It's a courtesy check to keep casual
    visitors out and to make clear who the trip content is meant for.
-2. **Passcode** — same as before: client-side AES-256-GCM encryption (key
-   derived via PBKDF2, 250,000 iterations). The actual trip content —
-   flight/car confirmations, addresses, health info, everything — is stored
-   in the page only as ciphertext, decrypted in-browser only after the
-   correct passcode is entered, via the Web Crypto API.
+2. **Passcode** — client-side AES-256-GCM encryption (key derived via
+   PBKDF2-HMAC-SHA256, 250,000 iterations). The actual trip content —
+   flight/car confirmations, the house address, the lockbox and Wi-Fi
+   details, everything — is stored in the page only as ciphertext, decrypted
+   in-browser only after the correct passcode is entered, via the Web Crypto
+   API.
 
 Both the email and the passcode must be correct to unlock the page.
 
 ### Managing the approved email list
 
-Edit the `APPROVED_EMAILS` array near the top of the `<script>` block in
+Edit the `APPROVED_EMAILS` array in the `<script>` block near the bottom of
 `public/index.html`, then commit and push:
 
 ```js
@@ -92,9 +97,20 @@ This is appropriate for keeping the page private from the general internet,
 not for defending genuinely sensitive data (e.g. don't rely on this alone if
 you ever add anything like payment info).
 
-### Changing the passcode later
+## Updating the site later
 
-The passcode is baked into the encrypted payload at build time — there's no
-way to change it by editing the HTML directly. Ask for a rebuilt file with a
-new passcode if needed. (The email allowlist, by contrast, is plain text in
-`public/index.html` and can be edited directly — see above.)
+The trip content is encrypted at build time, so it can't be edited directly in
+`public/index.html` — the readable text simply isn't in there. To change it,
+ask for a rebuild: the plaintext content is re-encrypted with the passcode and
+the whole file regenerated. Same for changing the passcode.
+
+The email allowlist, the `<title>`, and the lock-screen styling are all plain
+text in `public/index.html` and can be edited directly.
+
+After any edit:
+```
+git add .
+git commit -m "Update trip site"
+git push
+```
+The workflow redeploys automatically.
